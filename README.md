@@ -14,7 +14,8 @@ Minimal speed dial for your bookmarks in Firefox and Chrome! Completely free and
 
 ## Install
 
-From addons.mozilla.org: https://addons.mozilla.org/firefox/addon/firedial/
+- Chrome: https://chromewebstore.google.com/detail/khflkpkeicdbceieebokdclnedonmphk
+- Firefox: https://addons.mozilla.org/firefox/addon/firedial
 
 ## Usage
 
@@ -48,6 +49,6 @@ To load it in Chrome:
 
 ## Trust
 
-- FireDial is only published at `github.com/sebastianstucke87/FireDial` and `addons.mozilla.org/firefox/addon/firedial`. Anything else claiming to be FireDial is fake; report it.
+- FireDial is only published at `github.com/sebastianstucke87/FireDial`, `chromewebstore.google.com/detail/khflkpkeicdbceieebokdclnedonmphk` and `addons.mozilla.org/firefox/addon/firedial`. Anything else claiming to be FireDial is fake; report it.
 - FireDial is not for sale.
 - Something odd? [Open an issue](https://github.com/sebastianstucke87/FireDial/issues) or [report a vulnerability](https://github.com/sebastianstucke87/FireDial/security/advisories/new).
