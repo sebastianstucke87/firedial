@@ -20,12 +20,12 @@ if (!/^(0|[1-9]\d{0,4})(\.(0|[1-9]\d{0,4})){0,3}$/.test(version) || version.spli
 interface Target {
   browser: 'firefox' | 'chrome'
   esbuild: string
-  icons: string
+  icons: string[]
 }
 
 const targets: Target[] = [
-  { browser: 'firefox', esbuild: 'firefox142', icons: 'browsers/icons' },
-  { browser: 'chrome', esbuild: 'chrome134', icons: 'browsers/chrome/icons' }
+  { browser: 'firefox', esbuild: 'firefox142', icons: ['browsers/icons'] },
+  { browser: 'chrome', esbuild: 'chrome134', icons: ['browsers/icons', 'browsers/chrome/icons'] }
 ]
 
 rmSync('dist', { recursive: true, force: true })
@@ -52,7 +52,7 @@ for (const target of targets) {
     `${JSON.stringify({ ...manifest, version }, null, 4)}
 `
   )
-  cpSync(target.icons, `${out}/icons`, { recursive: true })
+  for (const icons of target.icons) cpSync(icons, `${out}/icons`, { recursive: true })
   cpSync('src/newtab.html', `${out}/newtab.html`)
   cpSync('src/newtab.css', `${out}/newtab.css`)
   cpSync('src/defaults.json', `${out}/defaults.json`)
