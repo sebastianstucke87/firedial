@@ -1,6 +1,6 @@
 // FireDial new tab page.
 
-import { BROWSER_NAME, searchEngines, searchWeb, versionOf } from './browser.ts'
+import { BROWSER_NAME, searchEngines, searchWeb } from './browser.ts'
 
 import { backupName, exportParts, importSummary, readBackup } from './backup.ts'
 import { parseMap } from './bookmarks.ts'
@@ -2050,7 +2050,7 @@ document.addEventListener('focusout', () => {
 })
 
 function openAbout(): void {
-  html('#aboutVersion').textContent = `FireDial ${versionOf(browser.runtime.getManifest())}`
+  html('#aboutVersion').textContent = `FireDial ${browser.runtime.getManifest().version}`
   html('#browserName').textContent = BROWSER_NAME
   void aboutModal.open()
 }

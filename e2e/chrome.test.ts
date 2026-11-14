@@ -115,11 +115,11 @@ test("Chrome's context menu has Add to FireDial with New View and Remove", async
   assert.equal(await exists('no-such-entry'), false)
 })
 
-test('About shows the full version and offers Chrome bookmarks', async () => {
+test('About shows the version and offers Chrome bookmarks', async () => {
   await home()
   await click('#editToggle')
   await click('[data-action="about"]')
-  assert.match(await js<string>("return document.querySelector('#aboutVersion').textContent"), /^FireDial 20\d\d\.\d{1,2}\.\d{1,2}\.\d{1,6}$/)
+  assert.match(await js<string>("return document.querySelector('#aboutVersion').textContent"), /^FireDial 20\d\d\.\d{1,2}\.\d{1,2}\.\d{1,4}$/)
   assert.equal(await js<string>('return document.querySelector(\'[data-action="import-bookmarks"]\').textContent'), 'Chrome bookmarks')
 })
 

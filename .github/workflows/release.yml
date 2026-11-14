@@ -1,4 +1,4 @@
-# Every push to main and every pull request (e.g. from Dependabot) is tested, in Firefox and Chrome. A tag like v2026.11.10.183412 on main is also submitted to addons.mozilla.org and the Chrome Web Store.
+# Every push to main and every pull request (e.g. from Dependabot) is tested, in Firefox and Chrome. A tag like v2026.11.10.1834 on main is also submitted to addons.mozilla.org and the Chrome Web Store.
 
 name: Release
 

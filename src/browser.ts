@@ -26,10 +26,6 @@ export function adapt<T extends Api>(scope: Scope<T>): boolean {
 export const IS_CHROME = adapt(globalThis)
 export const BROWSER_NAME = IS_CHROME ? 'Chrome' : 'Firefox'
 
-// Chrome's versions take numbers up to 65535, so its manifest has the hour and minute only and
-// the full version as version_name.
-export const versionOf = (manifest: { version: string; version_name?: string | undefined }): string => manifest.version_name ?? manifest.version
-
 interface SearchApi {
   get?: (() => Promise<browser.search.SearchEngine[]>) | undefined
   search(details: { query: string; engine?: string; disposition: 'CURRENT_TAB' }): Promise<unknown>

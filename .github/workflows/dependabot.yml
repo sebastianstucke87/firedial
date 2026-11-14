@@ -98,8 +98,8 @@ jobs:
           REPO: ${{ github.repository }}
           SHA: ${{ needs.merge.outputs.sha }}
         run: |
-          # The same version scheme as scripts/build.ts: YYYY.M.D.HHMMSS without leading zeros.
-          read -r year month day time <<<"$(date -u '+%Y %-m %-d %H%M%S')"
+          # The same version scheme as scripts/build.ts: YYYY.M.D.HHMM without leading zeros.
+          read -r year month day time <<<"$(date -u '+%Y %-m %-d %H%M')"
           tag="v$year.$month.$day.$((10#$time))"
           gh api "repos/$REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" >/dev/null
           gh workflow run release.yml --repo "$REPO" --ref "$tag"

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { adapt, BROWSER_NAME, IS_CHROME, searchEngines, searchWeb, versionOf } from './browser.ts'
+import { adapt, BROWSER_NAME, IS_CHROME, searchEngines, searchWeb } from './browser.ts'
 
 const api = (base: string, more: Record<string, unknown> = {}): { runtime: { getURL(path: string): string } } & Record<string, unknown> => ({
   runtime: { getURL: (path: string) => `${base}${path}` },
@@ -49,11 +49,6 @@ for (const [kind, scopeOf] of [
 test('in Node, which is neither, FireDial counts as in Firefox', () => {
   assert.equal(IS_CHROME, false)
   assert.equal(BROWSER_NAME, 'Firefox')
-})
-
-test("the version shown is Chrome's version_name, else the version", () => {
-  assert.equal(versionOf({ version: '2026.11.14.1834', version_name: '2026.11.14.183412' }), '2026.11.14.183412')
-  assert.equal(versionOf({ version: '2026.11.14.183412' }), '2026.11.14.183412')
 })
 
 interface Call {
