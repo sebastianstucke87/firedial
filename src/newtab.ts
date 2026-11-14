@@ -1,5 +1,7 @@
 // FireDial new tab page.
 
+import { BROWSER_NAME, searchEngines, searchWeb } from './browser.ts'
+
 import { backupName, exportParts, importSummary, readBackup } from './backup.ts'
 import { parseMap } from './bookmarks.ts'
 import { honeycomb, labelColor, mainColor, markOn, textOn } from './color.ts'
@@ -191,8 +193,8 @@ const notify = (text: string): void => {
 
 // Opening sparks
 
-// Firefox doesn't let extensions open file: and about: URLs, so those sparks copy their URL.
-const isBlocked = (url: string): boolean => /^(file|about):/i.test(url)
+// Browsers don't let extensions open file:, about: and chrome: URLs, so those sparks copy their URL.
+const isBlocked = (url: string): boolean => /^(file|about|chrome):/i.test(url)
 
 async function copyBlocked(url: string): Promise<void> {
   await navigator.clipboard.writeText(url)
@@ -866,7 +868,7 @@ let suggestIndex = 0
 
 async function loadEngines(): Promise<void> {
   try {
-    engines = await browser.search.get()
+    engines = await searchEngines(browser.search)
   } catch (error) {
     console.error('search.get:', error)
     engines = []
@@ -886,7 +888,7 @@ function parseQuery(text: string): ParsedQuery {
 
 function webSearch({ engine, terms }: ParsedQuery): void {
   if (!terms) return
-  void browser.search.search({ query: terms, ...(engine ? { engine: engine.name } : {}), disposition: 'CURRENT_TAB' })
+  void searchWeb(browser.search, terms, engine?.name)
 }
 
 const suggestItems = (): HTMLElement[] => $$('.SuggestItem', HTMLElement, suggestBox)
@@ -2049,13 +2051,14 @@ document.addEventListener('focusout', () => {
 
 function openAbout(): void {
   html('#aboutVersion').textContent = `FireDial ${browser.runtime.getManifest().version}`
+  html('#browserName').textContent = BROWSER_NAME
   void aboutModal.open()
 }
 
 const aboutModal = new Modal($('#aboutModal', HTMLDialogElement), 'FireDial')
 const confirm = new Confirm()
 
-// Firefox's bookmarks, once: read only, into labels and views; then each site's icon, which is
+// The browser's bookmarks, once: read only, into labels and views; then each site's icon, which is
 // what the access to all sites is for. It ends with the import.
 
 const ICON_SIZE = 96 // px at most: under SMALL_IMAGE, so it shows as an icon
@@ -2077,7 +2080,7 @@ async function importBookmarks(): Promise<void> {
   const sure = await confirm.ask(
     {
       title: 'Import bookmarks',
-      text: `Import ${plural(plan.sparks.length, 'bookmark')} from ${plural(plan.folders, 'folder')}${plan.known ? ` (${plan.known} ${plan.known === 1 ? 'is' : 'are'} in FireDial already)` : ''}. Folders become labels; top folders also become views. Firefox's bookmarks stay as they are.`,
+      text: `Import ${plural(plan.sparks.length, 'bookmark')} from ${plural(plan.folders, 'folder')}${plan.known ? ` (${plan.known} ${plan.known === 1 ? 'is' : 'are'} in FireDial already)` : ''}. Folders become labels; top folders also become views. ${BROWSER_NAME}'s bookmarks stay as they are.`,
       button: 'Import'
     },
     () => {

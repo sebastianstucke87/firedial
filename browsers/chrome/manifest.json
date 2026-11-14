@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "FireDial",
+  "description": "Minimal speed dial for your bookmarks! Completely free and open source: no ads, no account, no tracking, no BS.",
+  "homepage_url": "https://github.com/sebastianstucke87/FireDial",
+  "minimum_chrome_version": "134",
+  "background": {
+    "service_worker": "js/background.js",
+    "type": "module"
+  },
+  "permissions": ["activeTab", "bookmarks", "contextMenus", "downloads", "scripting", "search", "storage", "unlimitedStorage"],
+  "optional_host_permissions": ["<all_urls>"],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

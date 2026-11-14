@@ -4,6 +4,7 @@
 // FireDial's own folder stays out. An address FireDial has already is left out, so a second
 // import adds only what's new.
 
+import { isBookmark, isFolder, isOtherBookmarks } from './bookmarks.ts'
 import { sameLabel, toLabel, toLabelName, toSparkUrl, viewTitled } from './model.ts'
 import type { Doc, Label, LabelName, SparkUrl } from './model.ts'
 
@@ -11,6 +12,7 @@ export interface BookmarkNode {
   id: string
   title: string
   type?: string | undefined
+  folderType?: string | undefined
   url?: string | null | undefined
   children?: BookmarkNode[] | undefined
 }
@@ -28,9 +30,6 @@ export interface ImportPlan {
   known: number // left out: in FireDial already
   skipped: number // left out: no address FireDial can hold
 }
-
-const isFolder = (node: BookmarkNode): boolean => node.type === 'folder' || (node.type === undefined && node.url == null)
-const isBookmark = (node: BookmarkNode): boolean => node.type === 'bookmark' || (node.type === undefined && typeof node.url === 'string')
 
 // Firefox stores addresses normalized; compared the same way, nothing else: # and www count.
 function sameAddress(url: string): string {
@@ -78,7 +77,7 @@ export function planImport(root: BookmarkNode, doc: Doc, skip: string | null): I
 
   for (const area of root.children ?? []) {
     for (const node of area.children ?? []) {
-      const ownFolder = node.id === skip || (skip === null && area.id === 'unfiled_____' && node.title === 'FireDial')
+      const ownFolder = node.id === skip || (skip === null && isOtherBookmarks(area) && node.title === 'FireDial')
       if (isBookmark(node)) add(node, [], null, area.id)
       else if (isFolder(node) && !ownFolder) {
         const label = labelOf(node.title)

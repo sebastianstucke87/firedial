@@ -15,7 +15,7 @@ import { allocSpark, canonicalize, labelKey, listOf, makeView, SparkId, toLabel,
 import type { Doc, LabelName, Spark } from './model.ts'
 import type { KeyValue, Store } from './store.ts'
 
-const ROOT_PARENT = 'unfiled_____' // Other Bookmarks
+const FIREFOX_OTHER = 'unfiled_____' // Firefox's Other Bookmarks
 const ROOT_TITLE = 'FireDial'
 const SAVE_EVERY = 50 // bookmark writes between saving the map, so a crash can't orphan many
 const PULL_DELAY = 300 // ms: Firefox Sync and bulk edits fire many events in a row
@@ -23,12 +23,15 @@ const PULL_DELAY = 300 // ms: Firefox Sync and bulk edits fire many events in a 
 export interface TreeNode {
   id: string
   title: string
-  type?: string | undefined
+  type?: string | undefined // Firefox only
+  folderType?: string | undefined // Chrome only
+  syncing?: boolean | undefined // Chrome only
   url?: string | null | undefined
   children?: TreeNode[] | undefined
 }
 
 export interface BookmarkApi {
+  getTree(): Promise<TreeNode[]>
   getChildren(id: string): Promise<TreeNode[]>
   getSubTree(id: string): Promise<TreeNode[]>
   create(details: { parentId: string; title: string; url?: string }): Promise<{ id: string }>
@@ -68,9 +71,13 @@ const LABEL_DATA_TITLE = 'FireDial labels'
 const VIEW_DATA_TITLE = 'FireDial views'
 const DATA_CHUNK = 60_000 // characters of JSON in one address
 
-const isData = (node: TreeNode): boolean => node.type === 'bookmark' && (node.url ?? '').startsWith(DATA)
-const isBookmark = (node: TreeNode): boolean => node.type === 'bookmark' && !isData(node)
-const childBookmarks = (node: TreeNode): TreeNode[] => (node.children ?? []).filter(isBookmark)
+// Firefox tells folders, bookmarks and separators by type; Chrome has no type and no separators.
+export const isFolder = (node: Pick<TreeNode, 'type' | 'url'>): boolean => node.type === 'folder' || (node.type === undefined && node.url == null)
+export const isBookmark = (node: Pick<TreeNode, 'type' | 'url'>): boolean =>
+  node.type === 'bookmark' || (node.type === undefined && typeof node.url === 'string')
+const isData = (node: TreeNode): boolean => isBookmark(node) && (node.url ?? '').startsWith(DATA)
+const isSpark = (node: TreeNode): boolean => isBookmark(node) && !isData(node)
+const childBookmarks = (node: TreeNode): TreeNode[] => (node.children ?? []).filter(isSpark)
 const dataOf = (root: TreeNode, prefix: string): TreeNode[] => (root.children ?? []).filter((node) => isData(node) && (node.url ?? '').startsWith(prefix))
 
 // The addresses that hold this value: part/parts#JSON, in order.
@@ -214,9 +221,24 @@ async function fetchRoot(api: BookmarkApi, id: string): Promise<TreeNode | null>
   }
 }
 
-// FireDial's folder is in the bookmarks already, e.g. brought by Firefox Sync from another device.
+// Other Bookmarks, where FireDial's folder goes. Chrome marks it with a folder type; signed in, it
+// has two, and the one that syncs to the account wins over the one on this device only.
+export const isOtherBookmarks = (node: TreeNode): boolean => node.id === FIREFOX_OTHER || node.folderType === 'other'
+
+async function otherBookmarks(api: BookmarkApi): Promise<string> {
+  const [tree] = await api.getTree()
+  const others = (tree?.children ?? []).filter(isOtherBookmarks)
+  const other = others.find((node) => node.syncing === true) ?? others[0]
+  if (!other) throw new Error('No Other Bookmarks')
+  return other.id
+}
+
+const findFolder = async (api: BookmarkApi, parent: string): Promise<TreeNode | undefined> =>
+  (await api.getChildren(parent)).find((node) => isFolder(node) && node.title === ROOT_TITLE)
+
+// FireDial's folder is in the bookmarks already, e.g. brought by browser sync from another device.
 export async function hasBookmarkFolder(api: BookmarkApi): Promise<boolean> {
-  return (await api.getChildren(ROOT_PARENT)).some((node) => node.type === 'folder' && node.title === ROOT_TITLE)
+  return (await findFolder(api, await otherBookmarks(api))) !== undefined
 }
 
 // The root folder. It comes back if it's gone: deleting it must not wipe FireDial.
@@ -224,8 +246,8 @@ async function ensureRoot(api: BookmarkApi, map: BookmarkMap): Promise<TreeNode>
   const current = map.root === null ? null : await fetchRoot(api, map.root)
   if (current) return current
   map.sparks.clear()
-  const existing = (await api.getChildren(ROOT_PARENT)).find((node) => node.type === 'folder' && node.title === ROOT_TITLE)
-  const id = existing?.id ?? (await api.create({ parentId: ROOT_PARENT, title: ROOT_TITLE })).id
+  const parent = await otherBookmarks(api)
+  const id = (await findFolder(api, parent))?.id ?? (await api.create({ parentId: parent, title: ROOT_TITLE })).id
   map.root = id
   const root = await fetchRoot(api, id)
   if (!root) throw new Error('Bookmark folder vanished')

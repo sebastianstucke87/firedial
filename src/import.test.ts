@@ -65,6 +65,25 @@ test("FireDial's own folder stays out, by id or by name", () => {
   assert.equal(planImport(tree(area('unfiled_____', 'Other Bookmarks', own)), emptyDoc(), null).sparks.length, 0)
 })
 
+test("Chrome's bookmarks, without types: folders by their missing address, FireDial's by name in Other bookmarks", () => {
+  const chromeFolder = (title: string, ...children: BookmarkNode[]): BookmarkNode => ({ id: `f${next++}`, title, children })
+  const link = (title: string): BookmarkNode => ({ id: `b${next++}`, title, url: `https://${title}.example/` })
+  const bookmarks: BookmarkNode = {
+    id: '0',
+    title: '',
+    children: [
+      { id: '1', title: 'Bookmarks bar', folderType: 'bookmarks-bar', children: [link('bar'), chromeFolder('FireDial', link('kept'))] },
+      { id: '8', title: 'Other bookmarks', folderType: 'other', children: [chromeFolder('FireDial', link('own')), chromeFolder('Work', link('w'))] }
+    ]
+  }
+  const plan = planImport(bookmarks, emptyDoc(), null)
+  assert.deepEqual(shape(plan), [
+    ['bar', 'https://bar.example/', ''],
+    ['kept', 'https://kept.example/', 'FireDial'],
+    ['w', 'https://w.example/', 'Work']
+  ])
+})
+
 test('a view of the same name is used, and an address FireDial has is left out', () => {
   const doc = emptyDoc()
   allocView(doc, 'work')
