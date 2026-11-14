@@ -81,8 +81,8 @@ export async function startChrome({ defaults = false, hosts = '' } = {}): Promis
   return { driver, newtab: `chrome-extension://${id}/newtab.html`, downloads, quit }
 }
 
-export async function until(driver: chrome.Driver, what: string, check: () => Promise<boolean>): Promise<void> {
-  const end = Date.now() + TIMEOUT
+export async function until(driver: chrome.Driver, what: string, check: () => Promise<boolean>, timeout = TIMEOUT): Promise<void> {
+  const end = Date.now() + timeout
   while (!(await check())) {
     if (Date.now() > end) assert.fail(`Timed out waiting for: ${what}`)
     await driver.sleep(WAIT)

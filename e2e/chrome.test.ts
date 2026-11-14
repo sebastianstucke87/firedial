@@ -78,7 +78,13 @@ test('a fresh install in Chrome starts with the defaults, and they are bookmarks
       .object({ sparks: z.array(z.object({ title: z.string() })) })
       .parse(JSON.parse(readFileSync('src/defaults.json', 'utf8')))
       .sparks.map((spark) => spark.title)
+    // FireDial stores the defaults right after Chrome starts, maybe after the tab opened; an open
+    // tab follows only once it's shown again, so it's opened again once they're stored.
     await fresh.driver.get(fresh.newtab)
+    const stored = (): Promise<number> =>
+      fresh.driver.executeAsyncScript("const done = arguments[0]; browser.storage.local.get('sparks').then((found) => done((found.sparks ?? []).length))")
+    await untilIn(fresh.driver, 'the defaults stored', async () => (await stored()) === titles.length, 30_000)
+    await fresh.driver.navigate().refresh()
     const shown = (): Promise<number> => fresh.driver.executeScript("return document.querySelectorAll('#sparks .Spark[data-id]').length")
     await untilIn(fresh.driver, 'the defaults', async () => (await shown()) === titles.length)
     const marks = (): Promise<string[]> =>
