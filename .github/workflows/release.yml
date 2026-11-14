@@ -1,4 +1,4 @@
-# Every push to main and every pull request (e.g. from Dependabot) is tested. A tag like v2026.11.10.183412 on main is also submitted to addons.mozilla.org.
+# Every push to main and every pull request (e.g. from Dependabot) is tested, in Firefox and Chrome. A tag like v2026.11.10.183412 on main is also submitted to addons.mozilla.org and the Chrome Web Store.
 
 name: Release
 
@@ -112,3 +112,29 @@ jobs:
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+
+  # The Chrome Web Store's keys live in the environment chrome-web-store, which only v* tags may
+  # use. Runs once the release job tested the tag, builds it the same way and submits it for review.
+  chrome-web-store:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: chrome-web-store
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - run: npm ci
+      - run: FIREDIAL_VERSION="${GITHUB_REF_NAME#v}" npm run build
+      - run: npx chrome-webstore-upload --source dist/chrome
+        env:
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}

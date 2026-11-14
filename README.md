@@ -2,7 +2,7 @@
 
 # FireDial
 
-Minimal speed dial for your bookmarks in Firefox! Completely free and open source: no ads, no account, no tracking, no BS.
+Minimal speed dial for your bookmarks in Firefox and Chrome! Completely free and open source: no ads, no account, no tracking, no BS.
 
 <img src="browsers/screenshots/light.png" alt="FireDial in light, wide layout"/>
 
@@ -18,10 +18,10 @@ From addons.mozilla.org: https://addons.mozilla.org/firefox/addon/firedial/
 
 ## Usage
 
-- Right-click a page, link or tab: **Add to FireDial**.
+- Right-click a page or link (in Firefox also a tab): **Add to FireDial**.
 - **Edit**: settings. **About**: shortcuts, bookmark import.
 - Views filter sparks by label, e.g. _Work or News_, _all but Private_.
-- Sparks are bookmarks (**Other Bookmarks → FireDial**), so Firefox Sync carries them. Images stay local.
+- Sparks are bookmarks (**Other Bookmarks → FireDial**), so the browser's sync carries them. Images stay local.
 
 ## Build
 
@@ -32,13 +32,19 @@ npm ci
 npm run build
 ```
 
-The add-on is in `dist/firefox`. `npm test` runs the checks and the tests in headless Firefox.
+The builds are in `dist/firefox` and `dist/chrome`. `npm test` runs the checks and the tests in headless Firefox and Chrome.
 
 To load your build until Firefox restarts:
 
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click `Load Temporary Add-on...`
 3. Pick `dist/firefox/manifest.json`
+
+To load it in Chrome:
+
+1. Open `chrome://extensions`
+2. Turn on `Developer mode`
+3. Click `Load unpacked` and pick `dist/chrome`
 
 ## Trust
 

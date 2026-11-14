@@ -64,14 +64,14 @@ None needed: FireDial collects and sends no data (`data_collection_permissions: 
 
 ## Screenshots
 
-Made with `npm run build && node scripts/shots.local.ts` (add `dark` for the dark theme) into `shots.local/`, from the sparks FireDial comes with.
+The same as in the README and on the Chrome Web Store: `browsers/screenshots/`, 2560×1600 (1280×800 at 2×), made with `npm run build && node scripts/screenshots.local.ts` from the sparks FireDial comes with.
 
-| File          | Caption                                    |
-| ------------- | ------------------------------------------ |
-| `1-home.png`  | Your bookmarks as a speed dial, in views   |
-| `2-edit.png`  | Edit: layout, columns, spacing and backups |
-| `3-about.png` | Keyboard shortcuts for everything          |
-| `4-views.png` | Views pick sparks by their labels          |
+| File        | Caption                                      |
+| ----------- | -------------------------------------------- |
+| `light.png` | Your bookmarks as a speed dial, in views     |
+| `dark.png`  | Light or dark, tiles or wide, your own color |
+| `edit.png`  | Edit: layout, columns, colors and backups    |
+| `list.png`  | Views pick sparks by their labels            |
 
 ## Permissions, if a reviewer asks
 

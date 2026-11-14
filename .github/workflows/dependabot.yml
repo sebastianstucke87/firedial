@@ -1,6 +1,6 @@
 # Runs after the tests of a pull request pass. A Dependabot patch or minor update is merged.
 # If the merge changed the built add-on, it is tagged with a new version and released to
-# addons.mozilla.org through release.yml. Releasing only happens while the repository
+# addons.mozilla.org and the Chrome Web Store through release.yml. Releasing only happens while the repository
 # variable AMO_RELEASES is 'true', and only after a first release was tagged by hand.
 
 name: Dependabot
@@ -73,10 +73,10 @@ jobs:
             exit 0
           fi
           npm ci && FIREDIAL_VERSION=0 npm run build
-          mv dist/firefox "$RUNNER_TEMP/new"
+          mv dist "$RUNNER_TEMP/new"
           git worktree add "$RUNNER_TEMP/old" "$last"
           (cd "$RUNNER_TEMP/old" && npm ci && FIREDIAL_VERSION=0 npm run build)
-          if diff -r "$RUNNER_TEMP/old/dist/firefox" "$RUNNER_TEMP/new"; then
+          if diff -r "$RUNNER_TEMP/old/dist" "$RUNNER_TEMP/new"; then
             echo "The add-on is the same as in $last: no release."
             echo changed=false >> "$GITHUB_OUTPUT"
           else

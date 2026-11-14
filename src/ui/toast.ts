@@ -8,6 +8,9 @@ import type { ViewId, Prefs, SparkId } from '../model.ts'
 const TOAST_TIME = 6000 // ms
 
 // The spark a click on the notification leads to.
+
+declare const chrome: typeof browser // Chrome's name for browser
+
 export interface Reveal {
   viewId: ViewId
   sparkId: SparkId
@@ -59,7 +62,8 @@ export function showToast(text: string, ms: number, background: string, color: s
       remove()
     } else if (reveal) {
       remove()
-      void browser.runtime.sendMessage(reveal)
+      // This runs in the page, where older Chrome has no browser.*, only chrome.*.
+      void (typeof browser === 'undefined' ? chrome : browser).runtime.sendMessage(reveal)
     }
   })
 }

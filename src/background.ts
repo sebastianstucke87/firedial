@@ -1,10 +1,12 @@
-// "Add to FireDial ▸ <view>" in Firefox's context menu everywhere: one item for all contexts,
+// "Add to FireDial ▸ <view>" in the browser's context menu everywhere: one item for all contexts,
 // no URL restriction. Links add the link, everything else the page. A view gives the spark its
 // label; Unlabeled adds it without one.
 // "New View" adds to a new view, named automatically; rename it in FireDial.
 // "Remove from FireDial" deletes sparks with the same link or page. Extensions learn the
 // page only with the click, so it's always enabled and the click finds out.
 // Also keeps the native bookmarks in sync with the store.
+
+import { IS_CHROME } from './browser.ts'
 
 import * as z from 'zod/mini'
 
@@ -24,7 +26,8 @@ const DAY = 86_400_000 // ms
 const RevealMessage = z.object({ viewId: ViewId, sparkId: SparkId })
 
 const store = new Store(browserKeyValue, webLock)
-const contexts: browser.menus.ContextType[] = ['all', 'tab']
+// Chrome has no menu on tabs.
+const contexts: browser.menus.ContextType[] = IS_CHROME ? ['all'] : ['all', 'tab']
 
 async function buildMenu(): Promise<void> {
   await browser.menus.removeAll()
@@ -32,7 +35,7 @@ async function buildMenu(): Promise<void> {
     console.error('FireDial menu:', error)
   })
   const views = store.doc.views.filter((view) => view.kind !== 'all')
-  browser.menus.create({ contexts, id: 'add-root', title: 'Add to FireDial' }) // Firefox allows an extension one entry here, always with the manifest's icon
+  browser.menus.create({ contexts, id: 'add-root', title: 'Add to FireDial' }) // Browsers allow an extension one entry here, with the manifest's icon
   browser.menus.create({ contexts, id: NEW_VIEW, parentId: 'add-root', title: 'New View' })
   browser.menus.create({ contexts, id: REMOVE, parentId: 'add-root', title: 'Remove from FireDial' })
   browser.menus.create({ contexts, id: 'add-separator', parentId: 'add-root', type: 'separator' })
@@ -56,7 +59,7 @@ interface MenuTarget {
 const targetUrl = (info: MenuTarget, tab: browser.tabs.Tab | undefined): string => (info.linkUrl || tab?.url || info.pageUrl) ?? ''
 const inFireDial = (url: string): boolean => store.doc.sparks.some((spark) => samePage(spark.url, url))
 
-// Pages Firefox protects (about:, addons.mozilla.org) and background tabs go without.
+// Pages the browser protects (about:, chrome:, the add-on stores) and background tabs go without.
 async function toast(tab: browser.tabs.Tab | undefined, text: string, reveal: Reveal | null = null): Promise<void> {
   if (tab?.id === undefined || !tab.active) return
   await browser.scripting.executeScript({ target: { tabId: tab.id }, func: showToast, args: toastArgs(text, store.doc.prefs, reveal) }).catch(() => undefined)
@@ -78,14 +81,14 @@ async function screenshot(tab: browser.tabs.Tab): Promise<string> {
     const scale = Math.min(1, THUMB_WIDTH / (tab.width ?? THUMB_WIDTH))
     return await browser.tabs.captureVisibleTab(tab.windowId ?? browser.windows.WINDOW_ID_CURRENT, { format: 'jpeg', quality: 85, scale })
   } catch {
-    return '' // e.g. pages Firefox doesn't allow capturing
+    return '' // e.g. pages the browser doesn't allow capturing
   }
 }
 
 async function addSpark(info: browser.menus.OnClickData, tab: browser.tabs.Tab | undefined, viewId: ViewId | null): Promise<void> {
   const isLink = Boolean(info.linkUrl)
   const url = toSparkUrl(targetUrl(info, tab))
-  if (!url || url.startsWith('moz-extension:')) return
+  if (!url || url.startsWith(browser.runtime.getURL(''))) return
   const title = toLabel((isLink ? info.linkText : tab?.title)?.trim() || url)
   // A screenshot; the tab's icon only when there is none.
   const shot = !isLink && tab?.active ? await screenshot(tab) : ''
